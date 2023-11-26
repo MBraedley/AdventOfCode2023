@@ -2,6 +2,7 @@
 //
 
 #include "Day01.h"
+#include "Utils.h"
 
 int main()
 {

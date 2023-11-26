@@ -1,7 +1,7 @@
 ﻿# CMakeList.txt : Top-level CMake project file, do global configuration
 # and include sub-projects here.
 #
-cmake_minimum_required (VERSION 3.8)
+cmake_minimum_required (VERSION 3.27)
 
 # Enable Hot Reload for MSVC compilers if supported.
 if (POLICY CMP0141)
@@ -9,54 +9,86 @@ if (POLICY CMP0141)
   set(CMAKE_MSVC_DEBUG_INFORMATION_FORMAT "$<IF:$<AND:$<C_COMPILER_ID:MSVC>,$<CXX_COMPILER_ID:MSVC>>,$<$<CONFIG:Debug,RelWithDebInfo>:EditAndContinue>,$<$<CONFIG:Debug,RelWithDebInfo>:ProgramDatabase>>")
 endif()
 
+set(CMAKE_CXX_STANDARD 20)
+
 project ("AdventOfCode2023")
 
+add_subdirectory("Utils")
+
 add_subdirectory("Day01")
-
 add_subdirectory("Day02")
-
 add_subdirectory("Day03")
-
 add_subdirectory("Day04")
-
 add_subdirectory("Day05")
-
 add_subdirectory("Day06")
-
 add_subdirectory("Day07")
-
 add_subdirectory("Day08")
-
 add_subdirectory("Day09")
-
 add_subdirectory("Day10")
-
 add_subdirectory("Day11")
-
 add_subdirectory("Day12")
-
 add_subdirectory("Day13")
-
 add_subdirectory("Day14")
-
 add_subdirectory("Day15")
-
 add_subdirectory("Day16")
-
 add_subdirectory("Day17")
-
 add_subdirectory("Day18")
-
 add_subdirectory("Day19")
-
 add_subdirectory("Day20")
-
 add_subdirectory("Day21")
-
 add_subdirectory("Day22")
-
 add_subdirectory("Day23")
-
 add_subdirectory("Day24")
-
 add_subdirectory("Day25")
+
+target_include_directories("Day01" PUBLIC "Utils")
+target_include_directories("Day02" PUBLIC "Utils")
+target_include_directories("Day03" PUBLIC "Utils")
+target_include_directories("Day04" PUBLIC "Utils")
+target_include_directories("Day05" PUBLIC "Utils")
+target_include_directories("Day06" PUBLIC "Utils")
+target_include_directories("Day07" PUBLIC "Utils")
+target_include_directories("Day08" PUBLIC "Utils")
+target_include_directories("Day09" PUBLIC "Utils")
+target_include_directories("Day10" PUBLIC "Utils")
+target_include_directories("Day11" PUBLIC "Utils")
+target_include_directories("Day12" PUBLIC "Utils")
+target_include_directories("Day13" PUBLIC "Utils")
+target_include_directories("Day14" PUBLIC "Utils")
+target_include_directories("Day15" PUBLIC "Utils")
+target_include_directories("Day16" PUBLIC "Utils")
+target_include_directories("Day17" PUBLIC "Utils")
+target_include_directories("Day18" PUBLIC "Utils")
+target_include_directories("Day19" PUBLIC "Utils")
+target_include_directories("Day20" PUBLIC "Utils")
+target_include_directories("Day21" PUBLIC "Utils")
+target_include_directories("Day22" PUBLIC "Utils")
+target_include_directories("Day23" PUBLIC "Utils")
+target_include_directories("Day24" PUBLIC "Utils")
+target_include_directories("Day25" PUBLIC "Utils")
+
+target_link_libraries("Day01" PUBLIC "Utils")
+target_link_libraries("Day02" PUBLIC "Utils")
+target_link_libraries("Day03" PUBLIC "Utils")
+target_link_libraries("Day04" PUBLIC "Utils")
+target_link_libraries("Day05" PUBLIC "Utils")
+target_link_libraries("Day06" PUBLIC "Utils")
+target_link_libraries("Day07" PUBLIC "Utils")
+target_link_libraries("Day08" PUBLIC "Utils")
+target_link_libraries("Day09" PUBLIC "Utils")
+target_link_libraries("Day10" PUBLIC "Utils")
+target_link_libraries("Day11" PUBLIC "Utils")
+target_link_libraries("Day12" PUBLIC "Utils")
+target_link_libraries("Day13" PUBLIC "Utils")
+target_link_libraries("Day14" PUBLIC "Utils")
+target_link_libraries("Day15" PUBLIC "Utils")
+target_link_libraries("Day16" PUBLIC "Utils")
+target_link_libraries("Day17" PUBLIC "Utils")
+target_link_libraries("Day18" PUBLIC "Utils")
+target_link_libraries("Day19" PUBLIC "Utils")
+target_link_libraries("Day20" PUBLIC "Utils")
+target_link_libraries("Day21" PUBLIC "Utils")
+target_link_libraries("Day22" PUBLIC "Utils")
+target_link_libraries("Day23" PUBLIC "Utils")
+target_link_libraries("Day24" PUBLIC "Utils")
+target_link_libraries("Day25" PUBLIC "Utils")

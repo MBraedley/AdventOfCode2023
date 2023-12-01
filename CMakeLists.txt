@@ -11,6 +11,10 @@ endif()
 
 set(CMAKE_CXX_STANDARD 20)
 
+if (MSVC)
+  add_compile_definitions(NOMINMAX _CRT_SECURE_NO_WARNINGS)
+endif()
+
 project ("AdventOfCode2023")
 
 add_subdirectory("Utils")

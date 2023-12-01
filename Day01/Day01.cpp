@@ -26,7 +26,7 @@ int main()
 
 	//part 2
 
-	std::regex re( R"(([1-9]|one|two|three|four|five|six|seven|eight|nine))" );
+	std::regex re( R"((?=([1-9]|one|two|three|four|five|six|seven|eight|nine)))" );
 	std::map<std::string, int> lookup =
 	{
 		{"1", 1},
@@ -49,18 +49,15 @@ int main()
 		{"nine", 9}
 	};
 
-	std::regex sanitizer( R"((on|tw|thre|fiv|eigh|nin)(e|o|t))" );
-
 	sum = 0;
 	for ( auto line : input )
 	{
-		auto sanitizedLine = std::regex_replace( line, sanitizer, "$1$2$2" );
-		std::sregex_token_iterator iter( sanitizedLine.begin(), sanitizedLine.end(), re );
+		std::sregex_iterator iter( line.begin(), line.end(), re );
 
-		std::vector<std::string> m(iter, std::sregex_token_iterator());
+		std::vector<std::smatch> m( iter, std::sregex_iterator() );
 
-		int v1 = lookup[*m.begin()] * 10;
-		int v2 = lookup[*m.rbegin()];
+		int v1 = lookup[(*m.begin())[1]] * 10;
+		int v2 = lookup[(*m.rbegin())[1]];
 
 		sum += v1 + v2;
 	}

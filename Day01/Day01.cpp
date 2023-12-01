@@ -49,10 +49,13 @@ int main()
 		{"nine", 9}
 	};
 
+	std::regex sanitizer( R"((on|tw|thre|fiv|eigh|nin)(e|o|t))" );
+
 	sum = 0;
 	for ( auto line : input )
 	{
-		std::sregex_token_iterator iter( line.begin(), line.end(), re );
+		auto sanitizedLine = std::regex_replace( line, sanitizer, "$1$2$2" );
+		std::sregex_token_iterator iter( sanitizedLine.begin(), sanitizedLine.end(), re );
 
 		std::vector<std::string> m(iter, std::sregex_token_iterator());
 

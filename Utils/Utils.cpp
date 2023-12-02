@@ -3,6 +3,8 @@
 
 #include "Utils.h"
 
+#include <sstream>
+
 std::vector<std::string> utils::ReadInput(const std::filesystem::path& input)
 {
 	std::vector<std::string> ret;
@@ -26,6 +28,20 @@ std::vector<std::vector<std::string>> utils::ReadFormattedInput(const std::files
 		std::smatch m;
 		std::regex_match(line, m, format);
 		ret.emplace_back(m.begin(), m.end());
+	}
+
+	return ret;
+}
+
+std::vector<std::string> utils::Tokenize(std::string str, char delim)
+{
+	std::stringstream sstrm(str);
+	std::vector<std::string> ret;
+
+	std::string token;
+	while (std::getline(sstrm, token, delim))
+	{
+		ret.push_back(token);
 	}
 
 	return ret;

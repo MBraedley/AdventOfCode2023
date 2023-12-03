@@ -46,3 +46,33 @@ std::vector<std::string> utils::Tokenize(std::string str, char delim)
 
 	return ret;
 }
+
+std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& map)
+{
+	std::set<Pos> ret;
+	auto addPoint = [&](const Pos& p)
+		{
+			if (p.X >= 0 && p.X < map[0].size() &&
+				p.Y >= 0 && p.Y < map.size())
+			{
+				ret.insert(p);
+			}
+		};
+
+	addPoint(*this + Pos(-1, -1));
+	addPoint(*this + Pos(0, -1));
+	addPoint(*this + Pos(1, -1));
+	addPoint(*this + Pos(-1, 0));
+	addPoint(*this + Pos(1, 0));
+	addPoint(*this + Pos(-1, 1));
+	addPoint(*this + Pos(0, 1));
+	addPoint(*this + Pos(1, 1));
+
+	return ret;
+}
+
+utils::Pos operator+(const utils::Pos& lhs, const utils::Pos& rhs)
+{
+	utils::Pos ret(lhs.X + rhs.X, lhs.Y + rhs.Y);
+	return ret;
+}

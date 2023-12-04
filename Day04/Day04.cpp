@@ -11,6 +11,8 @@ int main()
 
 	std::uint64_t sum = 0;
 
+	std::vector<int> cardCopies( input.size(), 1 );
+
 	for (auto card : input)
 	{
 		auto winningNumbers = utils::Tokenize(card[2], ' ');
@@ -35,9 +37,16 @@ int main()
 		{
 			sum += std::pow(2ll, matches.size() - 1ll);
 		}
+
+		std::size_t cardIndex = std::stoull( card[1] ) - 1;
+		for ( std::size_t i = 1; i <= matches.size(); i++ )
+		{
+			cardCopies[cardIndex + i] += cardCopies[cardIndex];
+		}
 	}
 
 	std::cout << sum << "\n";
+	std::cout << std::accumulate( cardCopies.begin(), cardCopies.end(), 0 ) << "\n";
 
 	return 0;
 }

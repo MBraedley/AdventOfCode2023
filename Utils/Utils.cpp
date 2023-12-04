@@ -41,7 +41,10 @@ std::vector<std::string> utils::Tokenize(std::string str, char delim)
 	std::string token;
 	while (std::getline(sstrm, token, delim))
 	{
-		ret.push_back(token);
+		if (!token.empty())
+		{
+			ret.push_back(token);
+		}
 	}
 
 	return ret;

@@ -76,8 +76,17 @@ public:
 			}
 			else //if ( !start.has_value() && !end.has_value() )
 			{
-				//TODO there might be an interior set that might work
-				ret.m_UnmappedDests.push_back( in );
+				if ( in.first < m_Source && in.first + in.second > m_Source + m_Range )
+				{
+					auto firstRange = m_Source - in.first;
+					ret.m_UnmappedDests.emplace_back( in.first, firstRange );
+					ret.m_MappedDests.emplace_back( m_Dest, m_Range );
+					ret.m_UnmappedDests.emplace_back( m_Source + m_Range, in.second - (firstRange + m_Range) );
+				}
+				else
+				{
+					ret.m_UnmappedDests.push_back( in );
+				}
 			}
 		}
 

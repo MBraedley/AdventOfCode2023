@@ -12,6 +12,7 @@
 #include <map>
 #include <algorithm>
 #include <numeric>
+#include <deque>
 
 namespace utils
 {

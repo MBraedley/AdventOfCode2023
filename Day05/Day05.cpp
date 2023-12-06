@@ -76,6 +76,7 @@ public:
 			}
 			else //if ( !start.has_value() && !end.has_value() )
 			{
+				//TODO there might be an interior set that might work
 				ret.m_UnmappedDests.push_back( in );
 			}
 		}

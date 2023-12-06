@@ -6,19 +6,24 @@
 
 #include <optional>
 
+struct MappedRanges
+{
+	std::vector<std::pair<std::uint64_t, std::uint64_t>> m_MappedDests;
+	std::vector<std::pair<std::uint64_t, std::uint64_t>> m_UnmappedDests;
+};
 
 class Mapping
 {
 public:
-	Mapping( std::uint32_t source, std::uint32_t dest, std::uint32_t range ) :
+	Mapping( std::uint64_t source, std::uint64_t dest, std::uint64_t range ) :
 		m_Source( source ), m_Dest( dest ), m_Range( range )
 	{}
 
 	~Mapping() = default;
 
-	std::optional<std::uint32_t> GetOutput( std::uint32_t input ) const
+	std::optional<std::uint64_t> GetOutput( std::uint64_t input ) const
 	{
-		std::optional<std::uint32_t> ret = std::nullopt;
+		std::optional<std::uint64_t> ret = std::nullopt;
 
 		if ( input >= m_Source && input < m_Source + m_Range )
 		{
@@ -28,10 +33,45 @@ public:
 		return ret;
 	}
 
+	MappedRanges GetOutput( const MappedRanges& input ) const
+	{
+		MappedRanges ret;
+		ret.m_MappedDests = input.m_MappedDests;
+
+		for ( const auto& in : input.m_UnmappedDests )
+		{
+			auto start = GetOutput( in.first );
+			auto end = GetOutput( in.first + in.second - 1 );
+
+			if ( start.has_value() && end.has_value() )
+			{
+				ret.m_MappedDests.emplace_back( *start, in.second );
+			}
+			else if ( start.has_value() )
+			{
+				auto destRange = m_Range - (*start - m_Dest);
+				ret.m_MappedDests.emplace_back( *start, destRange );
+				ret.m_UnmappedDests.emplace_back( in.first + destRange, in.second - destRange );
+			}
+			else if ( end.has_value() )
+			{
+				auto destRange = *end - m_Dest - 1;
+				ret.m_MappedDests.emplace_back( m_Dest, destRange );
+				ret.m_UnmappedDests.emplace_back( in.first, in.second - destRange );
+			}
+			else //if ( !start.has_value() && !end.has_value() )
+			{
+				ret.m_UnmappedDests.push_back( in );
+			}
+		}
+
+		return ret;
+	}
+
 private:
-	std::uint32_t m_Source;
-	std::uint32_t m_Dest;
-	std::uint32_t m_Range;
+	std::uint64_t m_Source;
+	std::uint64_t m_Dest;
+	std::uint64_t m_Range;
 };
 
 class MappingSet
@@ -40,12 +80,12 @@ public:
 	MappingSet() = default;
 	~MappingSet() = default;
 
-	void AddMapping( std::uint32_t source, std::uint32_t dest, std::uint32_t range )
+	void AddMapping( std::uint64_t source, std::uint64_t dest, std::uint64_t range )
 	{
 		m_Mappings.emplace_back( source, dest, range );
 	}
 
-	std::uint32_t GetOutput( std::uint32_t input ) const
+	std::uint64_t GetOutput( std::uint64_t input ) const
 	{
 		for ( const auto& mapping : m_Mappings )
 		{
@@ -56,6 +96,17 @@ public:
 		}
 
 		return input;
+	}
+
+	MappedRanges GetOutput( const MappedRanges& input ) const
+	{
+		MappedRanges ret = input;
+		for ( const auto& mapping : m_Mappings )
+		{
+			ret = mapping.GetOutput( ret );
+		}
+
+		return ret;
 	}
 
 private:
@@ -76,7 +127,7 @@ int main()
 
 	queue.push_back("");
 
-	std::uint32_t source, dest, range;
+	std::uint64_t source, dest, range;
 
 	while (!queue.empty())
 	{
@@ -96,11 +147,11 @@ int main()
 
 	seedsStr = seedsStr.substr(seedsStr.find_first_of(':') + 1);
 
-	std::uint32_t seed;
-	std::uint32_t closestLocation = std::numeric_limits<std::uint32_t>::max();
-	std::stringstream sstrm(seedsStr);
+	std::uint64_t seed;
+	std::uint64_t closestLocation = std::numeric_limits<std::uint64_t>::max();
+	std::stringstream sstrm1(seedsStr);
 
-	while (sstrm >> seed)
+	while (sstrm1 >> seed)
 	{
 		source = seed;
 		for (const auto& mapping : mappings)
@@ -112,6 +163,35 @@ int main()
 		if (source < closestLocation)
 		{
 			closestLocation = source;
+		}
+	}
+
+	std::cout << closestLocation << "\n";
+
+	//part 2
+
+	MappedRanges mr;
+
+	std::stringstream sstrm2( seedsStr );
+	while ( sstrm2 >> seed >> range )
+	{
+		mr.m_UnmappedDests.emplace_back( seed, range );
+	}
+
+	for ( const auto& mapping : mappings )
+	{
+		auto dest = mapping.GetOutput( mr );
+		dest.m_UnmappedDests.insert( dest.m_UnmappedDests.end(), dest.m_MappedDests.begin(), dest.m_MappedDests.end() );
+		dest.m_MappedDests.clear();
+		std::swap( mr, dest );
+	}
+
+	closestLocation = std::numeric_limits<std::uint64_t>::max();
+	for ( const auto& [start, range] : mr.m_UnmappedDests )
+	{
+		if ( start < closestLocation )
+		{
+			closestLocation = start;
 		}
 	}
 

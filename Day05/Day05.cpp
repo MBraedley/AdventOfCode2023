@@ -5,6 +5,7 @@
 #include "Utils.h"
 
 #include <optional>
+#include <cassert>
 
 struct MappedRanges
 {
@@ -49,15 +50,29 @@ public:
 			}
 			else if ( start.has_value() )
 			{
+				assert( *start >= m_Dest );
+				assert( m_Range > (*start - m_Dest) );
+
 				auto destRange = m_Range - (*start - m_Dest);
 				ret.m_MappedDests.emplace_back( *start, destRange );
-				ret.m_UnmappedDests.emplace_back( in.first + destRange, in.second - destRange );
+
+				assert( in.second >= destRange );
+				if ( in.second > destRange )
+				{
+					ret.m_UnmappedDests.emplace_back( in.first + destRange, in.second - destRange );
+				}
 			}
 			else if ( end.has_value() )
 			{
-				auto destRange = *end - m_Dest - 1;
+				//assert( *end >= m_Dest );
+				auto destRange = *end - m_Dest + 1;
 				ret.m_MappedDests.emplace_back( m_Dest, destRange );
-				ret.m_UnmappedDests.emplace_back( in.first, in.second - destRange );
+
+				assert( in.second >= destRange );
+				if ( in.second > destRange )
+				{
+					ret.m_UnmappedDests.emplace_back( in.first, in.second - destRange );
+				}
 			}
 			else //if ( !start.has_value() && !end.has_value() )
 			{
@@ -151,8 +166,11 @@ int main()
 	std::uint64_t closestLocation = std::numeric_limits<std::uint64_t>::max();
 	std::stringstream sstrm1(seedsStr);
 
+	std::vector<std::uint64_t> seeds;
+
 	while (sstrm1 >> seed)
 	{
+		seeds.push_back( seed );
 		source = seed;
 		for (const auto& mapping : mappings)
 		{
@@ -168,9 +186,38 @@ int main()
 
 	std::cout << closestLocation << "\n";
 
-	//part 2
+	closestLocation = std::numeric_limits<std::uint64_t>::max();
 
 	MappedRanges mr;
+
+	for ( auto s : seeds )
+	{
+		mr.m_UnmappedDests.emplace_back( s, 1 );
+	}
+
+	for ( const auto& mapping : mappings )
+	{
+		auto dest = mapping.GetOutput( mr );
+		dest.m_UnmappedDests.insert( dest.m_UnmappedDests.end(), dest.m_MappedDests.begin(), dest.m_MappedDests.end() );
+		dest.m_MappedDests.clear();
+		std::swap( mr, dest );
+	}
+
+	closestLocation = std::numeric_limits<std::uint64_t>::max();
+	for ( const auto& [start, range] : mr.m_UnmappedDests )
+	{
+		if ( start < closestLocation )
+		{
+			closestLocation = start;
+		}
+	}
+
+	std::cout << closestLocation << "\n";
+
+	//part 2
+
+	mr.m_MappedDests.clear();
+	mr.m_UnmappedDests.clear();
 
 	std::stringstream sstrm2( seedsStr );
 	while ( sstrm2 >> seed >> range )

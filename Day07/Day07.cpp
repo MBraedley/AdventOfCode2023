@@ -6,7 +6,7 @@
 
 #include <cassert>
 
-constexpr std::uint8_t GetCardValue( char c )
+constexpr std::uint8_t GetCardValue( char c, bool part2 = false )
 {
 	if ( c >= '0' && c <= '9' )
 	{
@@ -18,7 +18,14 @@ constexpr std::uint8_t GetCardValue( char c )
 	}
 	else if ( c == 'J' )
 	{
-		return 11;
+		if ( part2 )
+		{
+			return 1;
+		}
+		else
+		{
+			return 11;
+		}
 	}
 	else if ( c == 'Q' )
 	{
@@ -52,13 +59,19 @@ public:
 		FiveOfAKind,
 	};
 
-	HandOfCards( const std::string& hand, std::uint32_t wager ) :
+	HandOfCards( const std::string& hand, std::uint32_t wager, bool part2 = false ) :
 		m_Wager(wager)
 	{
 		for ( char c : hand )
 		{
-			m_UnsortedHand.push_back( GetCardValue( c ) );
-			m_Hand[GetCardValue( c )]++;
+			m_UnsortedHand.push_back( GetCardValue( c, part2 ) );
+			m_Hand[GetCardValue( c, part2 )]++;
+		}
+
+		std::uint8_t jokerCount = 0;
+		if ( part2 && m_Hand.contains( 1 ) )
+		{
+			jokerCount = m_Hand[1];
 		}
 
 		bool hasPair = false;
@@ -66,6 +79,7 @@ public:
 		bool hasTrip = false;
 		bool hasQuad = false;
 		bool hasQuint = false;
+		std::uint8_t largestSet = 1;
 
 		for ( const auto& [value, count] : m_Hand )
 		{
@@ -96,21 +110,26 @@ public:
 			default:
 				break;
 			}
+
+			if ( count > largestSet && value != 1 )
+			{
+				largestSet = count;
+			}
 		}
 
-		if ( hasQuint )
+		if ( hasQuint || largestSet + jokerCount == 5 )
 		{
 			m_Rank = Rank::FiveOfAKind;
 		}
-		else if ( hasQuad )
+		else if ( hasQuad || largestSet + jokerCount == 4 )
 		{
 			m_Rank = Rank::FourOfAKind;
 		}
-		else if ( hasTrip && hasPair )
+		else if ( hasTrip && hasPair || hasTwoPair && jokerCount == 1 )
 		{
 			m_Rank = Rank::FullHouse;
 		}
-		else if ( hasTrip )
+		else if ( hasTrip || largestSet + jokerCount == 3 )
 		{
 			m_Rank = Rank::ThreeOfAKind;
 		}
@@ -118,7 +137,7 @@ public:
 		{
 			m_Rank = Rank::TwoPair;
 		}
-		else if ( hasPair )
+		else if ( hasPair || largestSet + jokerCount == 2 )
 		{
 			m_Rank = Rank::OnePair;
 		}
@@ -127,7 +146,7 @@ public:
 			m_Rank = Rank::HighCard;
 		}
 	}
-
+	
 	~HandOfCards() = default;
 
 	std::uint32_t GetPayout( std::uint32_t rank ) const
@@ -168,19 +187,31 @@ int main()
 	std::regex re( R"(([2-9TJQKA]{5}) (\d+))" );
 	auto input = utils::ReadFormattedInput( "input.txt", re );
 
-	//std::vector<HandOfCards> hands;
-	std::multiset<HandOfCards> sortedHands;
+	std::multiset<HandOfCards> sortedHands1;
+	std::multiset<HandOfCards> sortedHands2;
 	for ( const auto& line : input )
 	{
-		//hands.emplace_back( line[1], std::stoi( line[2] ) );
-		sortedHands.emplace( line[1], std::stoi( line[2] ) );
+		sortedHands1.emplace( line[1], std::stoi( line[2] ) );
+		sortedHands2.emplace( line[1], std::stoi( line[2] ), true );
 	}
 
-	assert( sortedHands.size() == input.size() );
+	assert( sortedHands1.size() == input.size() );
+	assert( sortedHands2.size() == input.size() );
 
 	std::uint32_t totalPayout = 0;
 	std::uint32_t rank = 1;
-	for ( const auto& hand : sortedHands )
+	for ( const auto& hand : sortedHands1 )
+	{
+		totalPayout += hand.GetPayout( rank++ );
+	}
+
+	std::cout << totalPayout << "\n";
+
+	//part 2
+
+	totalPayout = 0;
+	rank = 1;
+	for ( const auto& hand : sortedHands2 )
 	{
 		totalPayout += hand.GetPayout( rank++ );
 	}

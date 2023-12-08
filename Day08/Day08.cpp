@@ -23,7 +23,7 @@ int main()
 	}
 
 	std::string currentLocation = "AAA";
-	std::uint32_t stepsTaken = 0;
+	std::uint64_t stepsTaken = 0;
 	while ( currentLocation != "ZZZ" )
 	{
 		char dir = directions[stepsTaken % directions.size()];
@@ -43,7 +43,7 @@ int main()
 	//part2
 
 	std::vector<std::string> currentLocations;
-	std::vector<std::string> endingLocations;
+	std::set<std::string> endingLocations;
 
 	for ( const auto& [key, value] : map )
 	{
@@ -54,36 +54,35 @@ int main()
 
 		if ( key.ends_with( "Z" ) )
 		{
-			endingLocations.push_back( key );
+			endingLocations.emplace( key );
 		}
 	}
 
-	std::sort( endingLocations.begin(), endingLocations.end() );
-	stepsTaken = 0;
-	std::vector<std::string> diff;
-
-	do
+	std::vector<std::uint32_t> stepsForPath;
+	for ( auto loc : currentLocations )
 	{
-		char dir = directions[stepsTaken % directions.size()];
-		std::vector<std::string> nextLocations;
-		for ( auto pos : currentLocations )
+		stepsTaken = 0;
+		while ( !endingLocations.contains( loc ) )
 		{
+			char dir = directions[stepsTaken % directions.size()];
 			if ( dir == 'L' )
 			{
-				nextLocations.push_back( map[pos].first );
+				loc = map[loc].first;
 			}
 			else
 			{
-				nextLocations.push_back( map[pos].second );
+				loc = map[loc].second;
 			}
+			stepsTaken++;
 		}
-		std::swap( currentLocations, nextLocations );
-		std::sort( currentLocations.begin(), currentLocations.end() );
-		diff.clear();
-		std::set_difference( currentLocations.begin(), currentLocations.end(), endingLocations.begin(), endingLocations.end(), std::back_inserter( diff ) );
+		stepsForPath.push_back( stepsTaken );
+	}
 
-		stepsTaken++;
-	} while ( !diff.empty() );
+	stepsTaken = 1;
+	for ( std::uint64_t n : stepsForPath )
+	{
+		stepsTaken = std::lcm( stepsTaken, n );
+	}
 
 	std::cout << stepsTaken << "\n";
 

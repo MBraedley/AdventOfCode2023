@@ -7,7 +7,7 @@
 class Polynomial
 {
 public:
-	Polynomial(const std::vector<std::int64_t>& poly)
+	Polynomial(const std::deque<std::int64_t>& poly)
 	{
 		m_Regression.push_back(poly);
 		CreateRegression();
@@ -22,7 +22,7 @@ public:
 		}
 
 		bool done = true;
-		std::vector<std::int64_t> np;
+		std::deque<std::int64_t> np;
 		for (std::size_t i = 1; i < p.size(); i++)
 		{
 			np.push_back(p[i] - p[i - 1]);
@@ -44,7 +44,7 @@ public:
 		for (std::size_t i = 1; i < m_Regression.size(); i++)
 		{
 			std::size_t n = m_Regression.size() - i;
-			m_Regression[n - 1].push_back(m_Regression[n].back() + m_Regression[n-1].back());
+			m_Regression[n - 1].push_back(m_Regression[n].back() + m_Regression[n - 1].back());
 		}
 
 		return m_Regression[0].back();
@@ -55,7 +55,7 @@ public:
 		for (std::size_t i = 1; i < m_Regression.size(); i++)
 		{
 			std::size_t n = m_Regression.size() - i;
-			m_Regression[n - 1].insert(m_Regression[n-1].begin(), m_Regression[n-1].front() - m_Regression[n].front());
+			m_Regression[n - 1].push_front(m_Regression[n - 1].front() - m_Regression[n].front());
 		}
 
 		return m_Regression[0].front();
@@ -64,7 +64,7 @@ public:
 	~Polynomial() = default;
 
 private:
-	std::vector<std::vector<std::int64_t>> m_Regression;
+	std::vector<std::deque<std::int64_t>> m_Regression;
 };
 
 int main()
@@ -77,7 +77,7 @@ int main()
 	std::int64_t val;
 	for (auto line : input)
 	{
-		std::vector<std::int64_t> poly;
+		std::deque<std::int64_t> poly;
 		std::stringstream sstrm(line);
 		while (sstrm >> val)
 		{

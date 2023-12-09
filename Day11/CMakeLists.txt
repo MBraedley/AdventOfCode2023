@@ -1,2 +1,4 @@
 ﻿add_executable(Day11 "Day11.cpp" "Day11.h")
-#configure_file("input.txt" "./input.txt" COPYONLY)
+if (EXISTS "input.txt")
+	configure_file("input.txt" "./input.txt" COPYONLY)
+endif()

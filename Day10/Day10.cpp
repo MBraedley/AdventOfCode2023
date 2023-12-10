@@ -109,6 +109,9 @@ int main()
 
 	assert(connectionCount == 2);
 
+	std::map<utils::Pos, Conections> connectedPipes;
+	connectedPipes.emplace(start, startConnections);
+
 	std::priority_queue<QueueItem> bfsQueue;
 	std::map<utils::Pos, std::uint32_t> stepsTaken;
 	stepsTaken.emplace(start, 0);
@@ -133,6 +136,7 @@ int main()
 			{
 				stepsTaken[pos + northDir] = steps + 1;
 				bfsQueue.push(std::make_tuple(pos + northDir, pipes[pos + northDir], steps + 1));
+				connectedPipes.emplace(pos + northDir, pipes[pos + northDir]);
 			}
 		}
 
@@ -143,6 +147,7 @@ int main()
 			{
 				stepsTaken[pos + southDir] = steps + 1;
 				bfsQueue.push(std::make_tuple(pos + southDir, pipes[pos + southDir], steps + 1));
+				connectedPipes.emplace(pos + southDir, pipes[pos + southDir]);
 			}
 		}
 
@@ -153,6 +158,7 @@ int main()
 			{
 				stepsTaken[pos + eastDir] = steps + 1;
 				bfsQueue.push(std::make_tuple(pos + eastDir, pipes[pos + eastDir], steps + 1));
+				connectedPipes.emplace(pos + eastDir, pipes[pos + eastDir]);
 			}
 		}
 
@@ -163,11 +169,128 @@ int main()
 			{
 				stepsTaken[pos + westDir] = steps + 1;
 				bfsQueue.push(std::make_tuple(pos + westDir, pipes[pos + westDir], steps + 1));
+				connectedPipes.emplace(pos + westDir, pipes[pos + westDir]);
 			}
 		}
 	}
 
 	std::cout << maxSteps << "\n";
+
+	//part 2
+	std::set<utils::Pos> insidePoints;
+
+	//start with the point that is most west and most north (points with the smallest x and then smallest y), then work your way around clockwise
+
+	auto tagInsidePipes = [&](const utils::Pos& previousPos, const utils::Pos& currentPos)
+		{
+			if ((previousPos + northDir) == currentPos)
+			{
+				if (!connectedPipes.contains(previousPos + eastDir))
+				{
+					insidePoints.insert(previousPos + eastDir);
+				}
+
+				if (!connectedPipes.contains(currentPos + eastDir))
+				{
+					insidePoints.insert(currentPos + eastDir);
+				}
+			}
+
+			if ((previousPos + eastDir) == currentPos)
+			{
+				if (!connectedPipes.contains(previousPos + southDir))
+				{
+					insidePoints.insert(previousPos + southDir);
+				}
+
+				if (!connectedPipes.contains(currentPos + southDir))
+				{
+					insidePoints.insert(currentPos + southDir);
+				}
+			}
+
+			if ((previousPos + southDir) == currentPos)
+			{
+				if (!connectedPipes.contains(previousPos + westDir))
+				{
+					insidePoints.insert(previousPos + westDir);
+				}
+
+				if (!connectedPipes.contains(currentPos + westDir))
+				{
+					insidePoints.insert(currentPos + westDir);
+				}
+			}
+
+			if ((previousPos + westDir) == currentPos)
+			{
+				if (!connectedPipes.contains(previousPos + northDir))
+				{
+					insidePoints.insert(previousPos + northDir);
+				}
+
+				if (!connectedPipes.contains(currentPos + northDir))
+				{
+					insidePoints.insert(currentPos + northDir);
+				}
+			}
+		};
+
+	auto getNextPipe = [&](utils::Pos previousPos, utils::Pos currentPos)->utils::Pos
+		{
+			if (connectedPipes[currentPos].north && previousPos != currentPos + northDir)
+			{
+				return currentPos + northDir;
+			}
+			else if (connectedPipes[currentPos].east && previousPos != currentPos + eastDir)
+			{
+				return currentPos + eastDir;
+			}
+			else if(connectedPipes[currentPos].south && previousPos != currentPos + southDir)
+			{
+				return currentPos + southDir;
+			}
+			else if(connectedPipes[currentPos].west && previousPos != currentPos + westDir)
+			{
+				return currentPos + westDir;
+			}
+			else
+			{
+				throw std::exception("Lost in the pipes");
+			}
+		};
+
+	start = connectedPipes.begin()->first;
+	utils::Pos previousPos = start;
+	utils::Pos currentPos = previousPos + eastDir;
+
+	assert(connectedPipes.contains(currentPos));
+
+	while (currentPos != start)
+	{
+		tagInsidePipes(previousPos, currentPos);
+		previousPos = getNextPipe(previousPos, currentPos);
+		std::swap(previousPos, currentPos);
+	}
+
+	std::deque<utils::Pos> floodedNest(insidePoints.begin(), insidePoints.end());
+
+	while (!floodedNest.empty())
+	{
+		auto testPoint = floodedNest.front();
+		floodedNest.pop_front();
+
+		for (auto nextPoint : testPoint.GetNeighbours(input, false))
+		{
+			if (!insidePoints.contains(nextPoint) && !connectedPipes.contains(nextPoint))
+			{
+				floodedNest.push_back(nextPoint);
+				insidePoints.insert(nextPoint);
+			}
+		}
+	}
+
+	std::cout << insidePoints.size() << "\n";
 
 	return 0;
 }

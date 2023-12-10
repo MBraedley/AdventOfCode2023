@@ -83,3 +83,5 @@ utils::Pos operator+(const utils::Pos& lhs, const utils::Pos& rhs)
 	utils::Pos ret(lhs.X + rhs.X, lhs.Y + rhs.Y);
 	return ret;
 }
+
+

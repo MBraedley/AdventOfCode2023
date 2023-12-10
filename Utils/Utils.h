@@ -35,7 +35,7 @@ namespace utils
 
 		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true);
 
-		std::strong_ordering operator<=>(const Pos& rhs) const
+		std::strong_ordering operator<=>(const utils::Pos& rhs) const
 		{
 			if (X == rhs.X)
 			{
@@ -45,6 +45,16 @@ namespace utils
 			{
 				return X <=> rhs.X;
 			}
+		}
+
+		bool operator==(const utils::Pos& rhs) const
+		{
+			return X == rhs.X && Y == rhs.Y;
+		}
+
+		bool operator!=(const utils::Pos& rhs) const
+		{
+			return !(*this == rhs);
 		}
 	};
 }

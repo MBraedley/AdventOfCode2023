@@ -50,7 +50,7 @@ std::vector<std::string> utils::Tokenize(std::string str, char delim)
 	return ret;
 }
 
-std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& map)
+std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals )
 {
 	std::set<Pos> ret;
 	auto addPoint = [&](const Pos& p)
@@ -62,14 +62,18 @@ std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& m
 			}
 		};
 
-	addPoint(*this + Pos(-1, -1));
 	addPoint(*this + Pos(0, -1));
-	addPoint(*this + Pos(1, -1));
-	addPoint(*this + Pos(-1, 0));
 	addPoint(*this + Pos(1, 0));
-	addPoint(*this + Pos(-1, 1));
 	addPoint(*this + Pos(0, 1));
-	addPoint(*this + Pos(1, 1));
+	addPoint(*this + Pos(-1, 0));
+	
+	if (includeDiagonals)
+	{
+		addPoint(*this + Pos(1, -1));
+		addPoint(*this + Pos(1, 1));
+		addPoint(*this + Pos(-1, 1));
+		addPoint(*this + Pos(-1, -1));
+	}
 
 	return ret;
 }

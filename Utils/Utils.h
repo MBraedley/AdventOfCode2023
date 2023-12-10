@@ -13,6 +13,7 @@
 #include <algorithm>
 #include <numeric>
 #include <deque>
+#include <queue>
 
 namespace utils
 {
@@ -32,7 +33,7 @@ namespace utils
 		int X;
 		int Y;
 
-		std::set<Pos> GetNeighbours(const std::vector<std::string>& map);
+		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true);
 
 		std::strong_ordering operator<=>(const Pos& rhs) const
 		{

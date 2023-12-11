@@ -34,6 +34,7 @@ namespace utils
 		int Y;
 
 		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true);
+		int GetManDistance(const Pos& other);
 
 		std::strong_ordering operator<=>(const utils::Pos& rhs) const
 		{
@@ -60,3 +61,4 @@ namespace utils
 }
 
 utils::Pos operator+(const utils::Pos& lhs, const utils::Pos& rhs);
+utils::Pos operator-(const utils::Pos& lhs, const utils::Pos& rhs);

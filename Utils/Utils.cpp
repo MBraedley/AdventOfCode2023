@@ -78,10 +78,19 @@ std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& m
 	return ret;
 }
 
+int utils::Pos::GetManDistance(const utils::Pos& other)
+{
+	return std::abs(X - other.X) + std::abs(Y - other.Y);
+}
+
 utils::Pos operator+(const utils::Pos& lhs, const utils::Pos& rhs)
 {
 	utils::Pos ret(lhs.X + rhs.X, lhs.Y + rhs.Y);
 	return ret;
 }
 
-
+utils::Pos operator-(const utils::Pos& lhs, const utils::Pos& rhs)
+{
+	utils::Pos ret(lhs.X - rhs.X, lhs.Y - rhs.Y);
+	return ret;
+}

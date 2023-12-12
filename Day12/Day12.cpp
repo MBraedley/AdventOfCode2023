@@ -11,14 +11,17 @@ std::uint64_t GetMatchCount( const std::string& springs, const std::regex& re )
 {
 	auto rPos = springs.find_first_of( '?' );
 
-	if ( rPos == springs.npos )
+	if ( springs.find_first_of( '?', rPos ) == springs.npos )
 	{
-		if ( std::regex_match( springs, re ) )
-		{
-			return 1;
-		}
-		return 0;
+		//only one unknown left, either damaged or working must match it at this point
+		return 1;
 	}
+
+	//if ( rPos == springs.npos )
+	//{
+	//	//We already know this string matches;
+	//	return 1;
+	//}
 
 	std::uint64_t count = 0;
 

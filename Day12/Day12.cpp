@@ -107,6 +107,7 @@ int main()
 	}
 
 	std::size_t count1 = 0;
+	std::size_t longestBranch = 0;
 	for ( auto& f : futures1 )
 	{
 		count1 += f.get();

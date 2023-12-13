@@ -7,6 +7,7 @@
 #include <thread>
 #include <future>
 #include <unordered_map>
+#include <mutex>
 
 using MemoKey = std::pair<std::string, int>;
 
@@ -27,9 +28,12 @@ namespace std
 
 std::unordered_map<MemoKey, std::optional<std::string>> MemoPad;
 std::unordered_map<int, std::regex> RegexLookup;
+std::mutex MemoLock;
+std::mutex RegexLock;
 
 std::regex& GetRegex( int group )
 {
+	std::unique_lock<std::mutex>( RegexLock );
 	if ( !RegexLookup.contains( group ) )
 	{
 		std::stringstream sstrm;
@@ -39,12 +43,22 @@ std::regex& GetRegex( int group )
 	return RegexLookup[group];
 }
 
-std::regex GetRegex( const std::vector<int>& groups )
+std::regex GetRegex( const std::vector<int>& groups, std::size_t reps )
 {
 	std::stringstream sstrm;
+	if ( reps > 1 )
+	{
+		sstrm << "(";
+	}
+	
 	for ( int group : groups )
 	{
 		sstrm << "[\\.\\?]+" << "[#\\?]{" << group << "}";
+	}
+
+	if ( reps > 1 )
+	{
+		sstrm << "){" << reps << "}";
 	}
 
 	sstrm << "[\\.\\?]+";
@@ -54,6 +68,7 @@ std::regex GetRegex( const std::vector<int>& groups )
 
 const std::optional<std::string> DoRegex( std::string str, int group )
 {
+	std::unique_lock<std::mutex>( MemoLock );
 	MemoKey key = std::make_pair( str, group );
 	if ( !MemoPad.contains( key ) )
 	{
@@ -62,7 +77,7 @@ const std::optional<std::string> DoRegex( std::string str, int group )
 		std::regex_search( key.first, m, re );
 		std::optional<std::string> suffix;
 		std::string prefix = m.prefix();
-		if ( !m.empty() && (prefix.empty() || prefix.find('#') == prefix.npos) )
+		if ( !m.empty() )
 		{
 			suffix = m.suffix().str();
 		}
@@ -72,7 +87,7 @@ const std::optional<std::string> DoRegex( std::string str, int group )
 	return MemoPad[key];
 }
 
-void GetMatchCount( const std::string& springs, const std::vector<int>& groups, const std::regex& fullMatchRegex, std::set<std::string>& matches )
+void GetMatchCount( const std::string& springs, const std::vector<int>& groups, std::size_t groupRep, const std::regex& fullMatchRegex, std::set<std::string>& matches )
 {
 	auto rPos = springs.find_first_of( '?' );
 
@@ -86,46 +101,54 @@ void GetMatchCount( const std::string& springs, const std::vector<int>& groups, 
 	springs1.replace( rPos, 1, 1, '.' );
 	std::string unmatched = springs1;
 	bool passed = true;
-	for ( int group : groups )
+
+	for ( std::size_t i = 0; i < groupRep; i++ )
 	{
-		auto m = DoRegex( unmatched, group );
-		if ( !m.has_value() )
+		for ( int group : groups )
 		{
-			passed = false;
-			break;
-		}
-		else
-		{
-			unmatched = "." + m.value();
+			auto m = DoRegex( unmatched, group );
+			if ( !m.has_value() )
+			{
+				passed = false;
+				break;
+			}
+			else
+			{
+				unmatched = "." + m.value();
+			}
 		}
 	}
 
 	if ( passed && std::regex_match( springs1, fullMatchRegex ) )
 	{
-		GetMatchCount( springs1, groups, fullMatchRegex, matches );
+		GetMatchCount( springs1, groups, groupRep, fullMatchRegex, matches );
 	}
 
 	std::string springs2 = springs;
 	springs2.replace( rPos, 1, 1, '#' );
 	unmatched = springs2;
 	passed = true;
-	for ( int group : groups )
+
+	for ( std::size_t i = 0; i < groupRep; i++ )
 	{
-		auto m = DoRegex( unmatched, group );
-		if ( !m.has_value() )
+		for ( int group : groups )
 		{
-			passed = false;
-			break;
-		}
-		else
-		{
-			unmatched = "." + m.value();
+			auto m = DoRegex( unmatched, group );
+			if ( !m.has_value() )
+			{
+				passed = false;
+				break;
+			}
+			else
+			{
+				unmatched = "." + m.value();
+			}
 		}
 	}
 
 	if ( passed && std::regex_match( springs2, fullMatchRegex ) )
 	{
-		GetMatchCount( springs2, groups, fullMatchRegex, matches );
+		GetMatchCount( springs2, groups, groupRep, fullMatchRegex, matches );
 	}
 }
 
@@ -135,6 +158,15 @@ int main()
 
 	auto input = utils::ReadInput( "input.txt" );
 
+	//std::vector<std::uint32_t> expected;
+	//expected.reserve( input.size() );
+	//std::ifstream eifstrm("expected.txt");
+	//std::uint32_t val;
+	//while ( eifstrm >> val )
+	//{
+	//	expected.push_back( val );
+	//}
+
 	std::vector<std::pair<std::string, std::vector<int>>> records;
 
 	for ( auto line : input )
@@ -142,7 +174,6 @@ int main()
 		std::stringstream sstrm( line );
 		std::string r;
 		sstrm >> r;
-		r = "." + r + ".";//make the regex easier
 
 		int count;
 		std::vector<int> check;
@@ -160,27 +191,23 @@ int main()
 	std::size_t count1 = 0;
 	std::size_t count2 = 0;
 
+	//auto expectedIter = expected.begin();
+
 	for ( auto& [record, groups] : records )
 	{
-		std::set<std::string> matches;
-		GetMatchCount( record, groups, GetRegex( groups ), matches );
-		count1 += matches.size();
-		//futures1.emplace_back( std::async( std::launch::async, [&]() -> std::size_t
-		//	{
-		//		return GetMatchCount( record, groups );
-		//	} ) );
+		std::set<std::string> matches1;
+		GetMatchCount( "." + record + ".", groups, 1, GetRegex(groups, 1), matches1);
+		count1 += matches1.size();
 
-		//futures2.emplace_back( std::async( std::launch::async, [&]() -> std::size_t
-		//	{
-		//		auto re = GenerateRegex( groups, 5 );
-		//		std::stringstream expRecord;
-		//		expRecord << record;
-		//		for ( int i = 1; i < 5; i++ )
-		//		{
-		//			expRecord << "?" << record;
-		//		}
-		//		return GetMatchCount( expRecord.str(), re );
-		//	} ) );
+		std::set<std::string> matches2;
+		std::stringstream expRecord;
+		expRecord << record;
+		for ( int i = 1; i < 5; i++ )
+		{
+			expRecord << "?" << record;
+		}
+		GetMatchCount( "." + expRecord.str() + ".", groups, 5, GetRegex(groups, 5), matches2);
+		count2 += matches2.size();
 	}
 
 	//for ( auto& f : futures1 )
@@ -192,10 +219,10 @@ int main()
 	std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - tp) << "\n";
 
 	//part 2
-	for ( auto& f : futures2 )
-	{
-		count2 += f.get();
-	}
+	//for ( auto& f : futures2 )
+	//{
+	//	count2 += f.get();
+	//}
 
 	std::cout << count2 << "\n";
 	std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - tp) << "\n";

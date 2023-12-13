@@ -93,26 +93,26 @@ int main()
 				return GetMatchCount( record, re );
 			} ) );
 
-		futures2.emplace_back( std::async( std::launch::async, [&]() -> std::size_t
-			{
-				auto re = GenerateRegex( groups, 5 );
-				std::stringstream expRecord;
-				expRecord << record;
-				for ( int i = 1; i < 5; i++ )
-				{
-					expRecord << "?" << record;
-				}
-				return GetMatchCount( expRecord.str(), re );
-			} ) );
+		//futures2.emplace_back( std::async( std::launch::async, [&]() -> std::size_t
+		//	{
+		//		auto re = GenerateRegex( groups, 5 );
+		//		std::stringstream expRecord;
+		//		expRecord << record;
+		//		for ( int i = 1; i < 5; i++ )
+		//		{
+		//			expRecord << "?" << record;
+		//		}
+		//		return GetMatchCount( expRecord.str(), re );
+		//	} ) );
 	}
 
-	std::size_t count1 = 0;
+	std::vector<std::size_t> counts;
 	for ( auto& f : futures1 )
 	{
-		count1 += f.get();
+		counts.push_back( f.get() );
 	}
 
-	std::cout << count1 << "\n";
+	std::cout << std::accumulate(counts.begin(), counts.end(), 0 ) << "\n";
 	std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - tp) << "\n";
 
 	//part 2

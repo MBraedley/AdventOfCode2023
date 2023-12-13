@@ -15,7 +15,7 @@ namespace std
 	template<>
 	struct hash<MemoKey>
 	{
-		std::size_t operator()(const MemoKey& obj) const noexcept
+		std::size_t operator()( const MemoKey& obj ) const noexcept
 		{
 			auto h1 = std::hash<std::string>{}(obj.first);
 			auto h2 = std::hash<int>{}(obj.second);
@@ -25,95 +25,108 @@ namespace std
 	};
 }
 
-std::unordered_map<MemoKey, std::smatch> MemoPad;
+std::unordered_map<MemoKey, std::optional<std::string>> MemoPad;
 std::unordered_map<int, std::regex> RegexLookup;
 
-//const std::regex TrailingCheck(R"([^#]*)");
-
-std::regex& GetRegex(int group)
+std::regex& GetRegex( int group )
 {
-	if (!RegexLookup.contains(group))
+	if ( !RegexLookup.contains( group ) )
 	{
 		std::stringstream sstrm;
-		sstrm << R"([^#]?([\?#]{)" << group << R"(})[^#])";
-		RegexLookup.emplace(group, sstrm.str());
+		sstrm << R"([^#]([\?#]{)" << group << R"(})[^#])";
+		RegexLookup.emplace( group, sstrm.str() );
 	}
 	return RegexLookup[group];
 }
 
-const std::smatch& DoRegex(std::string str, int group)
+std::regex GetRegex( const std::vector<int>& groups )
 {
-	MemoKey key = std::make_pair(str, group);
-	MemoKey keyCopy = key;
-	if (!MemoPad.contains(key))
+	std::stringstream sstrm;
+	for ( int group : groups )
 	{
-		std::smatch m;
-		std::regex& re = GetRegex(group);
-		std::regex_search(key.first, m, re);
-		MemoPad.emplace(std::move(key), m);
+		sstrm << "[\\.\\?]+" << "[#\\?]{" << group << "}";
 	}
-	return MemoPad[keyCopy];
+
+	sstrm << "[\\.\\?]+";
+
+	return std::regex( sstrm.str() );
 }
 
-std::uint64_t GetMatchCount( const std::string& springs, const std::vector<int>& groups )
+const std::optional<std::string> DoRegex( std::string str, int group )
+{
+	MemoKey key = std::make_pair( str, group );
+	if ( !MemoPad.contains( key ) )
+	{
+		std::smatch m;
+		std::regex& re = GetRegex( group );
+		std::regex_search( key.first, m, re );
+		std::optional<std::string> suffix;
+		std::string prefix = m.prefix();
+		if ( !m.empty() && (prefix.empty() || prefix.find('#') == prefix.npos) )
+		{
+			suffix = m.suffix().str();
+		}
+
+		MemoPad.emplace( key, suffix );
+	}
+	return MemoPad[key];
+}
+
+void GetMatchCount( const std::string& springs, const std::vector<int>& groups, const std::regex& fullMatchRegex, std::set<std::string>& matches )
 {
 	auto rPos = springs.find_first_of( '?' );
 
-	if ( springs.find_first_of( '?', rPos ) == springs.npos )
+	if ( rPos == springs.npos )
 	{
-		//only one unknown left, either damaged or working must match it at this point
-		return 1;
+		matches.insert( springs );
+		return;
 	}
-
-	std::uint64_t count = 0;
 
 	std::string springs1 = springs;
 	springs1.replace( rPos, 1, 1, '.' );
 	std::string unmatched = springs1;
 	bool passed = true;
-	for (int group : groups)
+	for ( int group : groups )
 	{
-		auto m = DoRegex(unmatched, group);
-		if (m.empty())
+		auto m = DoRegex( unmatched, group );
+		if ( !m.has_value() )
 		{
 			passed = false;
 			break;
 		}
 		else
 		{
-			unmatched = m.suffix();
+			unmatched = "." + m.value();
 		}
 	}
 
-	if (passed && unmatched.find('#') == unmatched.npos )
+	if ( passed && std::regex_match( springs1, fullMatchRegex ) )
 	{
-		count += GetMatchCount(springs1, groups);
+		GetMatchCount( springs1, groups, fullMatchRegex, matches );
 	}
 
 	std::string springs2 = springs;
 	springs2.replace( rPos, 1, 1, '#' );
 	unmatched = springs2;
 	passed = true;
-	for (int group : groups)
+	for ( int group : groups )
 	{
-		auto m = DoRegex(unmatched, group);
-		if (m.empty())
+		auto m = DoRegex( unmatched, group );
+		if ( !m.has_value() )
 		{
 			passed = false;
 			break;
 		}
 		else
 		{
-			unmatched = m.suffix();
+			unmatched = "." + m.value();
 		}
 	}
 
-	if (passed && unmatched.find('#') == unmatched.npos)
+	if ( passed && std::regex_match( springs2, fullMatchRegex ) )
 	{
-		count += GetMatchCount(springs1, groups);
+		GetMatchCount( springs2, groups, fullMatchRegex, matches );
 	}
-
-	return count;
 }
 
 int main()
@@ -129,7 +142,7 @@ int main()
 		std::stringstream sstrm( line );
 		std::string r;
 		sstrm >> r;
-		r += ".";//make the regex easier
+		r = "." + r + ".";//make the regex easier
 
 		int count;
 		std::vector<int> check;
@@ -149,7 +162,9 @@ int main()
 
 	for ( auto& [record, groups] : records )
 	{
-		count1 += GetMatchCount(record, groups);
+		std::set<std::string> matches;
+		GetMatchCount( record, groups, GetRegex( groups ), matches );
+		count1 += matches.size();
 		//futures1.emplace_back( std::async( std::launch::async, [&]() -> std::size_t
 		//	{
 		//		return GetMatchCount( record, groups );

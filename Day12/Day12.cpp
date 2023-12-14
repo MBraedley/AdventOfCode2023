@@ -51,9 +51,10 @@ std::regex GetRegex( const std::vector<int>& groups, std::size_t reps )
 		sstrm << "(";
 	}
 	
+	bool firstGroup = true;
 	for ( int group : groups )
 	{
-		sstrm << "[\\.\\?]+" << "[#\\?]{" << group << "}";
+		sstrm << ( firstGroup ? "\\.*" : "\\.+" ) << "(#{" << group << "})";
 	}
 
 	if ( reps > 1 )
@@ -61,7 +62,7 @@ std::regex GetRegex( const std::vector<int>& groups, std::size_t reps )
 		sstrm << "){" << reps << "}";
 	}
 
-	sstrm << "[\\.\\?]+";
+	sstrm << "[^#]*";
 
 	return std::regex( sstrm.str() );
 }
@@ -119,7 +120,7 @@ void GetMatchCount( const std::string& springs, const std::vector<int>& groups, 
 		}
 	}
 
-	if ( passed && std::regex_match( springs1, fullMatchRegex ) )
+	if ( passed && !std::regex_match( springs1, fullMatchRegex ) )
 	{
 		GetMatchCount( springs1, groups, groupRep, fullMatchRegex, matches );
 	}

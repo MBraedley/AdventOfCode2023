@@ -37,7 +37,7 @@ std::regex& GetRegex( int group )
 	if ( !RegexLookup.contains( group ) )
 	{
 		std::stringstream sstrm;
-		sstrm << R"(^[^#]*([\?#]{)" << group << R"(})[^#])";
+		sstrm << R"(^[^#]*?([\?#]{)" << group << R"(})[^#])";
 		RegexLookup.emplace( group, sstrm.str() );
 	}
 	return RegexLookup[group];

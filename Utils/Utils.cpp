@@ -78,9 +78,74 @@ std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& m
 	return ret;
 }
 
+std::set<utils::Pos> utils::Pos::GetNeighbours(const utils::Connections& connections, const std::vector<std::string>& map)
+{
+	std::set<Pos> ret;
+	auto addPoint = [&](const Pos& p)
+		{
+			if (p.X >= 0 && p.X < map[0].size() &&
+				p.Y >= 0 && p.Y < map.size())
+			{
+				ret.insert(p);
+			}
+		};
+
+	if (connections.north)
+	{
+		addPoint(*this + Pos(0, -1));
+	}
+
+	if (connections.east)
+	{
+		addPoint(*this + Pos(1, 0));
+	}
+
+	if (connections.south)
+	{
+		addPoint(*this + Pos(0, 1));
+	}
+
+	if (connections.west)
+	{
+		addPoint(*this + Pos(-1, 0));
+	}
+
+	return ret;
+}
+
 int utils::Pos::GetManDistance(const utils::Pos& other)
 {
 	return std::abs(X - other.X) + std::abs(Y - other.Y);
+}
+
+bool operator==(const utils::Connections& lhs, const utils::Connections& rhs)
+{
+	return lhs.north == rhs.north
+		&& lhs.south == rhs.south
+		&& lhs.east == rhs.east
+		&& lhs.west == rhs.west;
+}
+
+utils::Connections operator|(const utils::Connections& lhs, const utils::Connections& rhs)
+{
+	utils::Connections ret;
+	ret.north = lhs.north || rhs.north;
+	ret.south = lhs.south || rhs.south;
+	ret.east = lhs.east || rhs.east;
+	ret.west = lhs.west || rhs.west;
+
+	return ret;
+}
+
+utils::Connections operator&(const utils::Connections& lhs, const utils::Connections& rhs)
+{
+	utils::Connections ret;
+	ret.north = lhs.north && rhs.north;
+	ret.south = lhs.south && rhs.south;
+	ret.east = lhs.east && rhs.east;
+	ret.west = lhs.west && rhs.west;
+
+	return ret;
 }
 
 utils::Pos operator+(const utils::Pos& lhs, const utils::Pos& rhs)

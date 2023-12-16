@@ -17,11 +17,56 @@
 
 namespace utils
 {
+	struct Connections;
+}
+
+bool operator==(const utils::Connections& lhs, const utils::Connections& rhs);
+utils::Connections operator|(const utils::Connections& lhs, const utils::Connections& rhs);
+utils::Connections operator&(const utils::Connections& lhs, const utils::Connections& rhs);
+
+namespace utils
+{
 	std::vector<std::string> ReadInput(const std::filesystem::path& input);
 
 	std::vector<std::vector<std::string>> ReadFormattedInput(const std::filesystem::path& input, const std::regex& format);
 
 	std::vector<std::string> Tokenize(std::string str, char delim);
+
+	struct Connections
+	{
+		bool north = false;
+		bool south = false;
+		bool east = false;
+		bool west = false;
+
+		std::size_t Count() const
+		{
+			std::size_t count = 0;
+			if (north) count++;
+			if (south) count++;
+			if (east) count++;
+			if (west) count++;
+
+			return count;
+		}
+
+		Connections& operator|=(const Connections& rhs)
+		{
+			*this = *this | rhs;
+			return *this;
+		}
+
+		Connections& operator&=(const Connections& rhs)
+		{
+			*this = (*this & rhs);
+			return *this;
+		}
+
+		explicit operator bool() const
+		{
+			return north || south || east || west;
+		}
+	};
 
 	class Pos
 	{
@@ -34,6 +79,7 @@ namespace utils
 		int Y;
 
 		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true);
+		std::set<Pos> GetNeighbours(const Connections& connections, const std::vector<std::string>& map);
 		int GetManDistance(const Pos& other);
 
 		std::strong_ordering operator<=>(const utils::Pos& rhs) const

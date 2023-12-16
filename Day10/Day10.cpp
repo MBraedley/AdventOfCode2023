@@ -6,15 +6,7 @@
 
 #include <cassert>
 
-struct Conections
-{
-	bool north = false;
-	bool south = false;
-	bool east = false;
-	bool west = false;
-};
-
-using QueueItem = std::tuple<utils::Pos, Conections, std::uint32_t>;
+using QueueItem = std::tuple<utils::Pos, utils::Connections, std::uint32_t>;
 auto operator<=>(const QueueItem& lhs, const QueueItem& rhs)
 {
 	return std::get<std::uint32_t>(rhs) <=> std::get<std::uint32_t>(lhs);
@@ -24,14 +16,14 @@ int main()
 {
 	auto input = utils::ReadInput("input.txt");
 
-	std::map<utils::Pos, Conections> pipes;
+	std::map<utils::Pos, utils::Connections> pipes;
 	utils::Pos start(0, 0);
 
 	for (std::size_t y = 0; y < input.size(); y++)
 	{
 		for (std::size_t x = 0; x < input[y].size(); x++)
 		{
-			Conections c;
+			utils::Connections c;
 			switch (input[y][x])
 			{
 			case 'S':
@@ -79,7 +71,7 @@ int main()
 	utils::Pos eastDir(1, 0);
 	utils::Pos westDir(-1, 0);
 
-	Conections startConnections;
+	utils::Connections startConnections;
 	int connectionCount = 0;
 	if (pipes.contains(start + northDir) && pipes[start + northDir].south)
 	{
@@ -109,7 +101,7 @@ int main()
 
 	assert(connectionCount == 2);
 
-	std::map<utils::Pos, Conections> connectedPipes;
+	std::map<utils::Pos, utils::Connections> connectedPipes;
 	connectedPipes.emplace(start, startConnections);
 
 	std::priority_queue<QueueItem> bfsQueue;

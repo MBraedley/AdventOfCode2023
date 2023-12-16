@@ -21,6 +21,18 @@ int main()
 
 	auto input = utils::ReadInput("input.txt");
 
+	utils::Connections north;
+	north.north = true;
+
+	utils::Connections south;
+	south.south = true;
+
+	utils::Connections east;
+	east.east = true;
+
+	utils::Connections west;
+	west.west = true;
+
 	auto directLightBeam = [&](const utils::Pos& startPos, const utils::Connections& startDir) -> std::size_t
 	{
 		std::vector<std::vector<Tile>> grid;
@@ -36,18 +48,6 @@ int main()
 
 		std::queue<std::tuple<utils::Pos, utils::Connections>> lightBeams;
 		lightBeams.push(std::make_tuple(startPos, startDir));
-
-		utils::Connections north;
-		north.north = true;
-
-		utils::Connections south;
-		south.south = true;
-
-		utils::Connections east;
-		east.east = true;
-
-		utils::Connections west;
-		west.west = true;
 
 		while (!lightBeams.empty())
 		{
@@ -170,18 +170,6 @@ int main()
 	std::size_t maxEnergized = 0;
 	std::size_t width = input[0].size();
 	std::size_t height = input.size();
-
-	utils::Connections north;
-	north.north = true;
-
-	utils::Connections south;
-	south.south = true;
-
-	utils::Connections east;
-	east.east = true;
-
-	utils::Connections west;
-	west.west = true;
 
 	std::vector<std::future<std::size_t>> futures;
 

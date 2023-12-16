@@ -32,6 +32,13 @@ namespace utils
 
 	std::vector<std::string> Tokenize(std::string str, char delim);
 
+	template<typename T>
+	void PrintResult(const T& val, std::chrono::system_clock::time_point startTime)
+	{
+		std::cout << val << "\n";
+		std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime) << "\n";
+	}
+
 	struct Connections
 	{
 		bool north = false;

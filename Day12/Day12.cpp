@@ -236,16 +236,16 @@ int main()
 
 	auto expectedIter = expected.begin();
 
-	try
+	for (auto [record, groups] : records)
 	{
 		std::set<std::string> matches1;
-		GetMatchCount( "." + record + ".", groups, 1, GetRegex( groups, 1 ), matches1 );
+		GetMatchCount("." + record + ".", groups, 1, GetRegex(groups, 1), matches1);
 		count1 += matches1.size();
 
-		if ( matches1.size() != *expectedIter )
+		if (matches1.size() != *expectedIter)
 		{
 			std::cout << record << " " << groups[0];
-			for ( std::size_t i = 1; i < groups.size(); i++ )
+			for (std::size_t i = 1; i < groups.size(); i++)
 			{
 				std::cout << "," << groups[i];
 			}

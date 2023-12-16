@@ -26,6 +26,16 @@ namespace std
 	};
 }
 
+auto operator<=>(const MemoKey& lhs, const MemoKey& rhs)
+{
+	auto strOrder = lhs.first <=> rhs.first;
+	if (strOrder == std::strong_ordering::equal)
+	{
+		return lhs.second <=> rhs.second;
+	}
+	return strOrder;
+}
+
 std::unordered_map<MemoKey, std::optional<std::string>> MemoPad;
 std::unordered_map<int, std::regex> RegexLookup;
 std::mutex MemoLock;
@@ -33,7 +43,7 @@ std::mutex RegexLock;
 
 std::regex& GetRegex( int group )
 {
-	std::unique_lock<std::mutex>( RegexLock );
+	std::unique_lock<std::mutex> lock( RegexLock );
 	if ( !RegexLookup.contains( group ) )
 	{
 		std::stringstream sstrm;
@@ -68,7 +78,7 @@ std::regex GetRegex( const std::vector<int>& groups, std::size_t reps )
 
 const std::optional<std::string> DoRegex( std::string str, int group )
 {
-	std::unique_lock<std::mutex>( MemoLock );
+	std::unique_lock<std::mutex> lock( MemoLock );
 	MemoKey key = std::make_pair( str, group );
 	if ( !MemoPad.contains( key ) )
 	{
@@ -99,7 +109,7 @@ void GetMatchCount( const std::string& springs, const std::vector<int>& groups, 
 
 	std::string springs1 = springs;
 	springs1.replace( rPos, 1, 1, '.' );
-	std::string unmatched = springs1;
+	std::string unmatched = "." + springs1 + ".";
 	bool passed = true;
 
 	for ( std::size_t i = 0; i < groupRep; i++ )
@@ -119,14 +129,14 @@ void GetMatchCount( const std::string& springs, const std::vector<int>& groups, 
 		}
 	}
 
-	if ( passed && std::regex_match( springs1, fullMatchRegex ) )
+	if ( passed /* && std::regex_match(springs1, fullMatchRegex)*/)
 	{
 		GetMatchCount( springs1, groups, groupRep, fullMatchRegex, matches );
 	}
 
 	std::string springs2 = springs;
 	springs2.replace( rPos, 1, 1, '#' );
-	unmatched = springs2;
+	unmatched = "." + springs2 + ".";
 	passed = true;
 
 	for ( std::size_t i = 0; i < groupRep; i++ )
@@ -146,7 +156,7 @@ void GetMatchCount( const std::string& springs, const std::vector<int>& groups, 
 		}
 	}
 
-	if ( passed && std::regex_match( springs2, fullMatchRegex ) )
+	if ( passed /* && std::regex_match(springs2, fullMatchRegex)*/)
 	{
 		GetMatchCount( springs2, groups, groupRep, fullMatchRegex, matches );
 	}
@@ -193,36 +203,49 @@ int main()
 
 	//auto expectedIter = expected.begin();
 
-	for ( auto& [record, groups] : records )
+	try
 	{
-		std::set<std::string> matches1;
-		GetMatchCount( "." + record + ".", groups, 1, GetRegex(groups, 1), matches1);
-		count1 += matches1.size();
-
-		std::set<std::string> matches2;
-		std::stringstream expRecord;
-		expRecord << record;
-		for ( int i = 1; i < 5; i++ )
+		for (auto& [record, groups] : records)
 		{
-			expRecord << "?" << record;
+			futures1.emplace_back(std::async(std::launch::async, [&]() -> std::size_t
+				{
+					std::set<std::string> matches1;
+					GetMatchCount("." + record + ".", groups, 1, GetRegex(groups, 1), matches1);
+					return matches1.size();
+				}));
+
+			futures2.emplace_back(std::async(std::launch::async, [&]() -> std::size_t
+				{
+					std::set<std::string> matches2;
+					std::stringstream expRecord;
+					expRecord << record;
+					for (int i = 1; i < 5; i++)
+					{
+						expRecord << "?" << record;
+					}
+					GetMatchCount(expRecord.str(), groups, 5, GetRegex(groups, 5), matches2);
+					return matches2.size();
+				}));
 		}
-		GetMatchCount( "." + expRecord.str() + ".", groups, 5, GetRegex(groups, 5), matches2);
-		count2 += matches2.size();
+	}
+	catch (std::exception e)
+	{
+		std::cout << e.what();
 	}
 
-	//for ( auto& f : futures1 )
-	//{
-	//	count1 += f.get();
-	//}
+	for ( auto& f : futures1 )
+	{
+		count1 += f.get();
+	}
 
 	std::cout << count1 << "\n";
 	std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - tp) << "\n";
 
 	//part 2
-	//for ( auto& f : futures2 )
-	//{
-	//	count2 += f.get();
-	//}
+	for ( auto& f : futures2 )
+	{
+		count2 += f.get();
+	}
 
 	std::cout << count2 << "\n";
 	std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - tp) << "\n";

@@ -32,6 +32,10 @@ namespace utils
 
 	std::vector<std::string> Tokenize(std::string str, char delim);
 
+	std::vector<std::string> Transpose(const std::vector<std::string>& grid);
+
+	void PrintGrid(const std::vector<std::string>& grid);
+
 	template<typename T>
 	void PrintResult(const T& val, std::chrono::system_clock::time_point startTime)
 	{

@@ -50,6 +50,33 @@ std::vector<std::string> utils::Tokenize(std::string str, char delim)
 	return ret;
 }
 
+std::vector<std::string> utils::Transpose(const std::vector<std::string>& grid)
+{
+	std::vector<std::string> ret;
+
+	for (std::size_t x = 0; x < grid[0].size(); x++)
+	{
+		std::string s;
+		for (std::size_t y = 0; y < grid.size(); y++)
+		{
+			s.push_back(grid[y][x]);
+		}
+		ret.push_back(s);
+	}
+
+	return ret;
+}
+
+void utils::PrintGrid(const std::vector<std::string>& grid)
+{
+	for (const auto& line : grid)
+	{
+		std::cout << line << "\n";
+	}
+
+	std::cout << "\n";
+}
+
 std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals )
 {
 	std::set<Pos> ret;

@@ -77,6 +77,25 @@ void utils::PrintGrid(const std::vector<std::string>& grid)
 	std::cout << "\n";
 }
 
+std::set<utils::Pos> utils::Pos::GetUnboundedNeighbours(bool includeDiagonals)
+{
+	std::set<Pos> ret;
+	ret.insert(*this + Pos(0, -1));
+	ret.insert(*this + Pos(1, 0));
+	ret.insert(*this + Pos(0, 1));
+	ret.insert(*this + Pos(-1, 0));
+
+	if (includeDiagonals)
+	{
+		ret.insert(*this + Pos(1, -1));
+		ret.insert(*this + Pos(1, 1));
+		ret.insert(*this + Pos(-1, 1));
+		ret.insert(*this + Pos(-1, -1));
+	}
+
+	return ret;
+}
+
 std::set<utils::Pos> utils::Pos::GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals )
 {
 	std::set<Pos> ret;

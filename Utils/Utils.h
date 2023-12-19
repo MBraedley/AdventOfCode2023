@@ -89,6 +89,7 @@ namespace utils
 		int X;
 		int Y;
 
+		std::set<Pos> GetUnboundedNeighbours(bool includeDiagonals = true);
 		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true);
 		std::set<Pos> GetNeighbours(const Connections& connections, const std::vector<std::string>& map);
 		int GetManDistance(const Pos& other);

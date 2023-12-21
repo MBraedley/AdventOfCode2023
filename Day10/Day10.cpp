@@ -4,13 +4,8 @@
 #include "Day10.h"
 #include "Utils.h"
 
+#include <tuple>
 #include <cassert>
-
-using QueueItem = std::tuple<utils::Pos, utils::Connections, std::uint32_t>;
-auto operator<=>(const QueueItem& lhs, const QueueItem& rhs)
-{
-	return std::get<std::uint32_t>(rhs) <=> std::get<std::uint32_t>(lhs);
-}
 
 int main()
 {
@@ -104,30 +99,21 @@ int main()
 	std::map<utils::Pos, utils::Connections> connectedPipes;
 	connectedPipes.emplace(start, startConnections);
 
-	std::priority_queue<QueueItem> bfsQueue;
-	std::map<utils::Pos, std::uint32_t> stepsTaken;
-	stepsTaken.emplace(start, 0);
+	std::queue<std::pair<utils::Pos, utils::Connections>> pipeQueue;
 
-	std::uint32_t maxSteps = 0;
+	pipeQueue.push({ start, startConnections });
 
-	bfsQueue.push(std::make_tuple(start, startConnections, 0));
-	while (!bfsQueue.empty())
+	while (!pipeQueue.empty())
 	{
-		auto [pos, cons, steps] = bfsQueue.top();
-		bfsQueue.pop();
-
-		if (steps > maxSteps)
-		{
-			maxSteps = steps;
-		}
+		auto [pos, cons] = pipeQueue.front();
+		pipeQueue.pop();
 
 		if (cons.north)
 		{
 			assert(pipes.contains(pos + northDir));
-			if (!stepsTaken.contains(pos + northDir) || stepsTaken[pos + northDir] > steps + 1)
+			if (!connectedPipes.contains(pos + northDir))
 			{
-				stepsTaken[pos + northDir] = steps + 1;
-				bfsQueue.push(std::make_tuple(pos + northDir, pipes[pos + northDir], steps + 1));
+				pipeQueue.push(std::make_pair(pos + northDir, pipes[pos + northDir]));
 				connectedPipes.emplace(pos + northDir, pipes[pos + northDir]);
 			}
 		}
@@ -135,10 +121,9 @@ int main()
 		if (cons.south)
 		{
 			assert(pipes.contains(pos + southDir));
-			if (!stepsTaken.contains(pos + southDir) || stepsTaken[pos + southDir] > steps + 1)
+			if (!connectedPipes.contains(pos + southDir))
 			{
-				stepsTaken[pos + southDir] = steps + 1;
-				bfsQueue.push(std::make_tuple(pos + southDir, pipes[pos + southDir], steps + 1));
+				pipeQueue.push(std::make_pair(pos + southDir, pipes[pos + southDir]));
 				connectedPipes.emplace(pos + southDir, pipes[pos + southDir]);
 			}
 		}
@@ -146,10 +131,9 @@ int main()
 		if (cons.east)
 		{
 			assert(pipes.contains(pos + eastDir));
-			if (!stepsTaken.contains(pos + eastDir) || stepsTaken[pos + eastDir] > steps + 1)
+			if (!connectedPipes.contains(pos + eastDir) )
 			{
-				stepsTaken[pos + eastDir] = steps + 1;
-				bfsQueue.push(std::make_tuple(pos + eastDir, pipes[pos + eastDir], steps + 1));
+				pipeQueue.push(std::make_pair(pos + eastDir, pipes[pos + eastDir]));
 				connectedPipes.emplace(pos + eastDir, pipes[pos + eastDir]);
 			}
 		}
@@ -157,16 +141,15 @@ int main()
 		if (cons.west)
 		{
 			assert(pipes.contains(pos + westDir));
-			if (!stepsTaken.contains(pos + westDir) || stepsTaken[pos + westDir] > steps + 1)
+			if (!connectedPipes.contains(pos + westDir))
 			{
-				stepsTaken[pos + westDir] = steps + 1;
-				bfsQueue.push(std::make_tuple(pos + westDir, pipes[pos + westDir], steps + 1));
+				pipeQueue.push(std::make_pair(pos + westDir, pipes[pos + westDir]));
 				connectedPipes.emplace(pos + westDir, pipes[pos + westDir]);
 			}
 		}
 	}
 
-	std::cout << maxSteps << "\n";
+	std::cout << connectedPipes.size() / 2 << "\n";
 
 	//part 2
 	std::set<utils::Pos> insidePoints;

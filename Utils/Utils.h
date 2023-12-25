@@ -43,6 +43,14 @@ namespace utils
 		std::cout << "Time: " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::system_clock::now() - startTime) << "\n";
 	}
 
+	enum class Direction
+	{
+		North,
+		East,
+		South,
+		West,
+	};
+
 	struct Connections
 	{
 		bool north = false;
@@ -82,6 +90,10 @@ namespace utils
 	class Pos
 	{
 	public:
+		Pos() :
+			X(0), Y(0)
+		{}
+
 		Pos(int x, int y) :
 			X(x), Y(y)
 		{}
@@ -89,10 +101,11 @@ namespace utils
 		int X;
 		int Y;
 
-		std::set<Pos> GetUnboundedNeighbours(bool includeDiagonals = true);
-		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true);
-		std::set<Pos> GetNeighbours(const Connections& connections, const std::vector<std::string>& map);
-		int GetManDistance(const Pos& other);
+		std::set<Pos> GetUnboundedNeighbours(bool includeDiagonals = true) const;
+		std::set<Pos> GetNeighbours(const std::vector<std::string>& map, bool includeDiagonals = true) const;
+		std::set<Pos> GetNeighbours(const Connections& connections, const std::vector<std::string>& map) const;
+		std::optional<Pos> GetNeighbour(const Direction& direction, const std::vector<std::string>& map) const;
+		int GetManDistance(const Pos& other) const;
 
 		std::strong_ordering operator<=>(const utils::Pos& rhs) const
 		{

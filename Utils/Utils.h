@@ -14,6 +14,7 @@
 #include <numeric>
 #include <deque>
 #include <queue>
+#include <unordered_set>
 
 namespace utils
 {
@@ -133,3 +134,17 @@ namespace utils
 
 utils::Pos operator+(const utils::Pos& lhs, const utils::Pos& rhs);
 utils::Pos operator-(const utils::Pos& lhs, const utils::Pos& rhs);
+
+namespace std
+{
+	template<>
+	struct hash<utils::Pos>
+	{
+		std::size_t operator()(const utils::Pos& obj) const noexcept
+		{
+			std::string str = "" + std::to_string(obj.X) + "x, " + std::to_string(obj.Y) + "y";
+			std::hash<std::string> hasher;
+			return hasher(str);
+		}
+	};
+}

@@ -142,9 +142,8 @@ namespace std
 	{
 		std::size_t operator()(const utils::Pos& obj) const noexcept
 		{
-			std::string str = "" + std::to_string(obj.X) + "x, " + std::to_string(obj.Y) + "y";
-			std::hash<std::string> hasher;
-			return hasher(str);
+			std::size_t v = *reinterpret_cast<const std::size_t*>(&obj.X) << 32 + *reinterpret_cast<const std::size_t*>(&obj.Y);
+			return v;
 		}
 	};
 }

@@ -5,6 +5,7 @@
 #include "Utils.h"
 
 #include <stack>
+#include <cassert>
 
 int main()
 {
@@ -43,7 +44,7 @@ int main()
 			return true;
 		};
 
-	auto GetReflectedLines = [&](const std::vector<std::string>& map) -> std::size_t
+	auto GetReflectedLines = [&](const std::vector<std::string>& map, std::size_t oldSize = 0) -> std::size_t
 		{
 			std::deque<std::string> lhs;
 			for (const auto& s : map)
@@ -55,7 +56,7 @@ int main()
 			rhs.push_back(lhs.back());
 			lhs.pop_back();
 
-			while (!ComapareStacks(lhs, rhs) && !lhs.empty())
+			while ((lhs.size() == oldSize || !ComapareStacks(lhs, rhs)) && !lhs.empty())
 			{
 				rhs.push_back(lhs.back());
 				lhs.pop_back();
@@ -67,11 +68,59 @@ int main()
 	std::size_t horizontalSum = 0;
 	std::size_t verticalSum = 0;
 
+	std::vector<std::pair<std::size_t, std::size_t>> reflections;
+
 	for (const auto& m : maps)
 	{
-		horizontalSum += GetReflectedLines(m);
+		auto h = GetReflectedLines(m);
+		horizontalSum += h;
 		auto mt = utils::Transpose(m);
-		verticalSum += GetReflectedLines(mt);
+		auto v = GetReflectedLines(mt);
+		verticalSum += v;
+		reflections.emplace_back(h, v);
+	}
+
+	std::cout << horizontalSum * 100 + verticalSum << "\n";
+
+	//part 2
+	
+	horizontalSum = 0;
+	verticalSum = 0;
+
+	auto runReflections = [&](std::vector<std::string> map, std::size_t i)
+		{
+			for (auto& line : map)
+			{
+				for (auto& c : line)
+				{
+					c = (c == '.' ? '#' : '.');
+
+					auto h = GetReflectedLines(map, reflections[i].first);
+					if (h != reflections[i].first && h != 0)
+					{
+						horizontalSum += h;
+						return;
+					}
+
+					auto mt = utils::Transpose(map);
+					auto v = GetReflectedLines(mt, reflections[i].second);
+					if (v != reflections[i].second && v != 0)
+					{
+						verticalSum += v;
+						return;
+					}
+
+					c = (c == '.' ? '#' : '.');
+				}
+			}
+
+			throw std::exception("no new refelction");
+		};
+
+	for (size_t i = 0; i < reflections.size(); i++)
+	{
+		auto& m = maps[i];
+		runReflections(m, i);
 	}
 
 	std::cout << horizontalSum * 100 + verticalSum << "\n";

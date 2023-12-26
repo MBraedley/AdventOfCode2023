@@ -158,7 +158,44 @@ int main()
 					ns.visitedPoints = p.visitedPoints;
 					ns.visitedPoints.emplace(p.pos);
 
-					nextSteps.push(ns);
+					if (ns.pos == end)
+					{
+						if (ns.currentCost < lowestCost)
+						{
+							utils::PrintResult(ns.currentCost, startTime);
+							lowestCost = ns.currentCost;
+						}
+						validPath = false;
+					}
+					else if (posCosts.contains(ns.pos))
+					{
+						if (posCosts[ns.pos].contains(ns))
+						{
+							validPath = false;
+						}
+						else
+						{
+							for (auto s : posCosts[ns.pos])
+							{
+								if (ns.currentCost >= s.currentCost)
+								{
+									if (ns.stepsTaken == 3)
+									{
+										validPath = false;
+									}
+									else if (ns.lastStep == s.lastStep && ns.stepsTaken >= s.stepsTaken)
+									{
+										validPath = false;
+									}
+								}
+							}
+						}
+					}
+
+					if (validPath)
+					{
+						nextSteps.push(ns);
+					}
 				}
 			}
 		}
